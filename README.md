@@ -5,14 +5,14 @@ Easy-ish(?) way to set up a system for proxying netflix traffic to other countri
 
 Requirements
 ============
-- A VPS or other internet-connected device (dedicated server, raspberry pi, laptop, internet-connected dishwasher) capable of sending and receiving HTTP/TLS traffic on arbitrary ports, listening on arbitrary ports and, most importantly, running sniproxy.
+- A VPS or other internet-connected device (dedicated server, raspberry pi, laptop, internet-connected dishwasher) capable of sending and receiving HTTP/TLS traffic on arbitrary ports, listening on arbitrary ports and, most importantly, running `sniproxy`.
 - A device of some sort that routes traffic between your network and the internet, which provides DHCP services and allows for software installation, crontasks, simple NAT-based outbound and inbound port translation, and general manipulation of its filesystem and operations.
 
 Assumptions Made
 ================
 As I'm basing this off a setup I did on my own network, some assumptions are made.
 - Your internet-connected oscillating fan or lightbulb is running Debian or a Debian-based Linux distribution.
-- Your internet gateway device is an OpenWRT router capable of running `unbound` and doing basic packet rerouting via iptables' NAT table.
+- Your internet gateway device is an OpenWRT router capable of running `unbound` and doing basic packet rerouting via `iptables`' NAT table.
 - Your OpenWRT router is running the LuCI web interface or is running `uhttpd` with similar configuration to what LuCI ships with.
 - You have a dynamically-assigned WAN IP address because your ISP is a jerk.
 
@@ -23,14 +23,14 @@ Set-up is pretty easy and, with all the work done already, shouldn't take much t
 Remote
 ------
 For debian 7 or earlier users, you'll need to follow these steps first:
-- SSH into your server, run `apt-get update` followed by `apt-get upgrade` to make sure your system is up-to-date.
+- `ssh` into your server, run `apt-get update` followed by `apt-get upgrade` to make sure your system is up-to-date.
 - Run `apt-get install build-essential`. This will install a more or less complete compile environment.
 - `mkdir udns` followed by `cd udns`, then `wget http://www.corpit.ru/mjt/udns/udns-0.4.tar.gz && wget http://ftp.de.debian.org/debian/pool/main/u/udns/udns_0.4-1.debian.tar.gz`. Then, `tar xfz udns-0.4.tar.gz && tar xfz udns_0.4-1.debian.tar.gz && mv debian udns-0.4/` and `cd udns-0.4`.
 - Run `dpkg-buildpackage` then `cd ..` and run `dpkg -i *.deb` as root.
 - `cd ..` and `rm -rf udns`
 
 For ubuntu users, these steps should be followed instead:
-- SSH into your server, run `apt-get update` followed by `apt-get upgrade` to make sure your system is up-to-date.
+- `ssh` into your server, run `apt-get update` followed by `apt-get upgrade` to make sure your system is up-to-date.
 - Run `apt-get install build-essential libudns-dev`. This will install a more or less complete compile environment.
 
 From then on, all steps apply to any debian-based distribution:
