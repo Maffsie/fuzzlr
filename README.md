@@ -1,7 +1,7 @@
 fuzzlr
 ======
 
-Easy-ish(?) way to set up a system for proxying netflix traffic to other countries, a-la unblock-us.
+Easy-ish(?) way to set up a system for proxying netflix traffic to other countries, a-la unblock-us. Allows for per-machine, end-user toggleable enabling/disabling.
 
 Requirements
 ============
@@ -57,8 +57,11 @@ You're done!
 Notes/Why Bother?
 =================
 The set-up process is a tad more complex than other documented solutions, but wins out due to allowing users to enable/disable the proxying on individual hosts at will, with automatic proxy rule expiry. This how-to is, however, written with Debian and OpenWRT in mind, and *will* need altered to work with other LAN setups or operating systems/linux distributions.
+
 The local side of things obviously requires `uhttpd` configured to execute CGI, but may also require certain baseline local storage space and RAM, I'm unsure as I've only tested this on my own network.
+
 If you're lucky enough to have a statically-assigned IP from your ISP, you can gleefully skip installing the `/etc/firewall.user` file and set your `sniproxy` ports to `80` and `443`, dropping the two `http_table` and `tls_table` tables for a single, nameless `table` block, inside which lies a single set of proxyable domains without explicit outbound ports (`:80` or `:443` respectively). Instead of all that noise, a simple `iptables` rule resembling the two following will suffice: `iptables -I INPUT -p tcp ! -s Your.Static.Home.IP --dport 80 -j REJECT` and `iptables -I INPUT -p tcp ! -s Your.Static.Home.IP --dport 443 -j REJECT`.
+
 Note that if your remote server does not accept inbound traffic by default, you'll need to remove the exclamation marks and change `-j REJECT` to `-j ACCEPT`.
 
 Security Notes/Disclaimer
