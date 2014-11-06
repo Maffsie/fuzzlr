@@ -1,0 +1,21 @@
+#!/bin/sh
+[ -s /tmp/dnsredir.hosts ] || exit 0
+NXREDIRHOSTS="$(/bin/cat /tmp/dnsredir.hosts)"
+REDIREXPIRE=$((3600*4))
+CTIME=$(/bin/date +%s)
+NEWH=""
+for redirhost in $NXREDIRHOSTS; do
+	_MAC=$(echo $redirhost|/usr/bin/perl -lanF, -e 'print $F[0]')
+	_TIME=$(echo $redirhost|/usr/bin/perl -lanF, -e 'print $F[1]')
+	TDIFF=$(($CTIME-$_TIME))
+	[ $TDIFF -le $REDIREXPIRE ] && NEWH="$NEWH $_MAC,$_TIME" && continue
+	[ -z "$(/usr/sbin/iptables-save|grep -i "$_MAC")" ] && continue
+	UIPTRULE="zone_lan_prerouting -p udp -d 10.254.254.254 --dport 53 -m mac --mac-source $_MAC -j DNAT --to-destination 10.254.254.254:10053"
+	TIPTRULE="zone_lan_prerouting -p tcp -d 10.254.254.254 --dport 53 -m mac --mac-source $_MAC -j DNAT --to-destination 10.254.254.254:10053"
+	/usr/bin/logger -t DNSRedir-cron "Removing netflix redirect rule for MAC $_MAC (added at $_TIME) $TDIFF seconds after expiry"
+	UOUT=$(/usr/sbin/iptables -t nat -D $UIPTRULE 2>&1)
+	TOUT=$(/usr/sbin/iptables -t nat -D $TIPTRULE 2>&1)
+	[ ! -z "$UOUT" ] && /usr/bin/logger -t DNSRedir-cron "Error output from iptables-udp rule: $UOUT"
+	[ ! -z "$TOUT" ] && /usr/bin/logger -t DNSRedir-cron "Error output from iptables-tcp rule: $TOUT"
+done
+echo "$NEWH" > /tmp/dnsredir.hosts

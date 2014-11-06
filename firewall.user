@@ -1,0 +1,2 @@
+/usr/sbin/iptables -t nat -A zone_lan_prerouting -s 10.1.2.3/24 -d 169.254.0.1 -p tcp --dport 80 -j DNAT --to-destination 169.254.0.1:12345
+/usr/sbin/iptables -t nat -A zone_lan_prerouting -s 10.1.2.3/24 -d 169.254.0.1 -p tcp --dport 443 -j DNAT --to-destination 169.254.0.1:23456

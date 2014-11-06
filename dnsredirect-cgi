@@ -1,0 +1,29 @@
+#!/bin/sh
+[ -z "$REMOTE_HOST" ] && exit 1
+echo "Content-type: text/html
+"
+[ -z "$(echo "$REMOTE_HOST"|grep '^10.1.2.')" ] && exit 1
+MAC=$(egrep "$REMOTE_HOST.*br-lan$" /proc/net/arp|awk '{print $4}')
+HOSTNAME=$(grep -i "$MAC" /tmp/dhcp.leases|awk '{print $4}')
+[ -z "$HOSTNAME" ] && HOSTNAME="<i>computer name unknown</i>"
+REDIRACTIVE=0
+[ -z "$(iptables-save|grep -i "$MAC")" ] || REDIRACTIVE=1
+/usr/bin/logger -t DNSRedir "Connection from $REMOTE_HOST, MAC: $MAC, redirect $([ $REDIRACTIVE -eq 1 ] && echo "deactivated" || echo "activated")"
+IPT_UDP_RULE="zone_lan_prerouting -p udp -d 10.254.254.254 --dport 53 -m mac --mac-source $MAC -j DNAT --to-destination 10.254.254.254:10053"
+IPT_TCP_RULE="zone_lan_prerouting -p tcp -d 10.254.254.254 --dport 53 -m mac --mac-source $MAC -j DNAT --to-destination 10.254.254.254:10053"
+TERROUT="";UERROUT=""
+[ $REDIRACTIVE -eq 0 ] && UERROUT="$(/usr/sbin/iptables -t nat -A $IPT_UDP_RULE 2>&1)" || UERROUT="$(/usr/sbin/iptables -t nat -D $IPT_UDP_RULE 2>&1)"
+[ $REDIRACTIVE -eq 0 ] && TERROUT="$(/usr/sbin/iptables -t nat -A $IPT_TCP_RULE 2>&1)" || TERROUT="$(/usr/sbin/iptables -t nat -D $IPT_TCP_RULE 2>&1)"
+[ ! -z "$UERROUT" ] && /usr/bin/logger -t DNSRedir "Error when handling UDP rule for $REMOTE_HOST ($MAC): $UERROUT"
+[ ! -z "$TERROUT" ] && /usr/bin/logger -t DNSRedir "Error when handling TCP rule for $REMOTE_HOST ($MAC): $TERROUT"
+HFILE="";
+[ -s /tmp/dnsredir.hosts ] && HFILE="$(cat /tmp/dnsredir.hosts)"
+[ $REDIRACTIVE -eq 0 -a -z "$(echo "$HFILE"|grep -i "$MAC")" ] && HFILE="$HFILE $MAC,$(/bin/date +%s)" || HFILE="$(echo "$HFILE"|/usr/bin/perl -pe "s/$MAC,[0-9]+( |\$)//")"
+echo "$HFILE" > /tmp/dnsredir.hosts
+region=UK; [ $REDIRACTIVE -eq 0 ]&&region=US
+echo "<html><head><title>Now on Netflix $region</title></head><body><h1>Your computer, $HOSTNAME, will now be able to access Netflix $region.</h1>
+<!--
+dbg udp: $UERROUT
+dbg tcp: $TERROUT
+-->
+</body></html>"
