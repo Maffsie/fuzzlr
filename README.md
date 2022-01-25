@@ -3,6 +3,11 @@ fuzzlr
 
 Easy-ish(?) way to set up a system for proxying netflix traffic to other countries, a-la unblock-us. Allows for per-machine, end-user toggleable enabling/disabling.
 
+Notice - out-of-date
+====================
+
+The scripts and documentation in this repo were all written in 2014, and have not been in active use for many years at this point. This repo has been archived, but remains online in the event that it helps someone else in some way. The internet is an ever-burning Library of Alexandria, and I am not contributing to loss of information.
+
 Requirements
 ============
 - A VPS or other internet-connected device (dedicated server, raspberry pi, laptop, internet-connected dishwasher) capable of sending and receiving HTTP/TLS traffic on arbitrary ports, listening on arbitrary ports and, most importantly, running `sniproxy`.
